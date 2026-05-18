@@ -1,5 +1,5 @@
-from funciones import *
 import tkinter as tk
+from funciones import *
 ventana = tk.Tk()
 ventana.title("Banco de Sangre")
 ventana.geometry("400x300")
@@ -18,5 +18,18 @@ botonReportes = tk.Button(ventana, text = "Reportes", command = reportes)
 botonReportes.pack()
 botonSalir = tk.Button(ventana, text = "Salir", command = salir) 
 botonSalir.pack()
+
+import os
+
+# por defecto desactivar los botones 3, 4, 6
+botonActualizarDatos.config(state="disabled")
+botonEliminarDonador.config(state="disabled")
+botonReportes.config(state="disabled")
+
+# si existe la base de datos, activarlos todos
+if os.path.exists("baseDatos.txt"):
+    botonActualizarDatos.config(state="normal")
+    botonEliminarDonador.config(state="normal")
+    botonReportes.config(state="normal")
 
 ventana.mainloop()
