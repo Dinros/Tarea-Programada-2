@@ -1,8 +1,15 @@
+import os
+import pickle
 import re
 import tkinter as tk
 from tkinter import messagebox
 tiposSangre = ("O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-")
 baseDatos = []
+
+if os.path.exists("baseDatos.txt"):
+    with open("baseDatos.txt", "rb") as archivo:
+        baseDatos = pickle.load(archivo)
+        
 
 def insertarDonador():
     ventanaInsertarDonador = tk.Toplevel()
@@ -27,19 +34,19 @@ def insertarDonador():
     campoFecha = tk.Entry(ventanaInsertarDonador)
     campoFecha.pack()
 
-    tipoSangreVar = tk.StringVar()
-    tipoSangreVar.set("O+")
+    vTipoSangre = tk.StringVar() 
+    vTipoSangre.set("O+")
 
-    listaTipoSangre = tk.OptionMenu(ventanaInsertarDonador, tipoSangreVar, *tiposSangre)
+    listaTipoSangre = tk.OptionMenu(ventanaInsertarDonador, vTipoSangre, *tiposSangre)
     listaTipoSangre.pack()
 
-    sexoVar = tk.BooleanVar()
-    sexoVar.set(True)
+    vSexo = tk.BooleanVar()
+    vSexo.set(True)
 
-    radioMasculino = tk.Radiobutton(ventanaInsertarDonador, text = "Masculino", variable = sexoVar, value = True)
+    radioMasculino = tk.Radiobutton(ventanaInsertarDonador, text = "Masculino", variable = vSexo, value = True)
     radioMasculino.pack()
 
-    radioFemenino = tk.Radiobutton(ventanaInsertarDonador, text = "Femenino", variable = sexoVar, value = False)
+    radioFemenino = tk.Radiobutton(ventanaInsertarDonador, text = "Femenino", variable = vSexo, value = False)
     radioFemenino.pack() 
 
     etiquetaPeso = tk.Label(ventanaInsertarDonador, text = "Peso (kg): ")
@@ -92,12 +99,30 @@ def insertarDonador():
             messagebox.showerror("Usted no puede donar sangre", "debe pesar entre 50 y 120 kg.")
             return
         
+        partesNombre = campoNombre.get().split()
+        indiceSangre = tiposSangre.index(vTipoSangre.get())
+        sexo = vSexo.get()
+        partesFecha = fecha.split("/")
+        fechaTupla = (int(partesFecha[0]), int(partesFecha[1]), int(partesFecha[2]))
+
+        if len(partesNombre) != 3:
+            messagebox.showerror("Nombre inválido", "Debe ingresar su nombre y dos apellidos.")
+            return
+        
+        filaDonador = [partesNombre[0], partesNombre[1], partesNombre[2], cedula, indiceSangre, sexo, fechaTupla, float(peso), correo, tel, 1, 0]
+        baseDatos.append(filaDonador)
+        with open("baseDatos.txt", "wb") as archivo:
+            pickle.dump(baseDatos, archivo)
+        messagebox.showinfo("Éxito", "Donador registrado correctamente.")
+
+
+        
     def limpiar():
         campoCedula.delete(0, tk.END)
         campoNombre.delete(0, tk.END)
         campoFecha.delete(0, tk.END)
-        tipoSangreVar.set("O+")
-        sexoVar.set(True)
+        vTipoSangre.set("O+")
+        vSexo.set(True)
         campoPeso.delete(0, tk.END)
         campoTel.delete(0, tk.END)
         campoCorreo.delete(0, tk.END)
