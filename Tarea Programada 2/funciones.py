@@ -1,4 +1,6 @@
+import re
 import tkinter as tk
+from tkinter import messagebox
 tiposSangre = ("O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-")
 baseDatos = []
 
@@ -58,9 +60,38 @@ def insertarDonador():
     campoCorreo = tk.Entry(ventanaInsertarDonador)
     campoCorreo.pack()
 
+    def pesoAux(peso):
+        try:
+            pesoFloat = float(peso)
+            if pesoFloat > 50 and pesoFloat < 120:
+                return True
+            return False
+        except ValueError:
+            return False
+        
     def registrar():
-        print()
+        cedula = campoCedula.get()
+        fecha = campoFecha.get()
+        tel = campoTel.get()
+        correo = campoCorreo.get()
+        peso = campoPeso.get()
 
+        if not re.match(r'^[1-9]-\d{4}-\d{4}$', cedula):
+            messagebox.showerror("Cédula inválida", "el primer dígito no puede ser 0, siga los parámetros (#-####-####).")
+            return
+        if not re.match(r'^\d{2}/\d{2}/\d{4}$', fecha):
+            messagebox.showerror("Fecha inválida", "siga los parámetros (DD/MM/AAAA).")
+            return
+        if not re.match(r'^[246789]\d{3}-\d{4}$', tel):
+            messagebox.showerror("Teléfono inválido", "siga los parámetros(####-####).")
+            return
+        if not re.match(r'^[a-zA-Z0-9]+@[a-zA-Z]+\.[a-zA-Z]+(\.[a-zA-Z]+)?$', correo):
+            messagebox.showerror("Correo inválido", "siga los parámetros")
+            return
+        if not pesoAux(peso):
+            messagebox.showerror("Usted no puede donar sangre", "debe pesar entre 50 y 120 kg.")
+            return
+        
     def limpiar():
         campoCedula.delete(0, tk.END)
         campoNombre.delete(0, tk.END)
