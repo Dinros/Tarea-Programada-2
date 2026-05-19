@@ -1,3 +1,4 @@
+from datetime import date
 import os
 import pickle
 import re
@@ -9,7 +10,7 @@ baseDatos = []
 if os.path.exists("baseDatos.txt"):
     with open("baseDatos.txt", "rb") as archivo:
         baseDatos = pickle.load(archivo)
-        
+
 
 def insertarDonador():
     ventanaInsertarDonador = tk.Toplevel()
@@ -76,6 +77,22 @@ def insertarDonador():
         except ValueError:
             return False
         
+    def fechaAux(fechaTupla):
+        hoy = date.today()
+        annoNacimiento = fechaTupla[2]
+        mesNacimiento = fechaTupla[1]
+
+        if hoy.year - annoNacimiento > 18:
+            puedeDonar = True
+        elif hoy.year - annoNacimiento == 18:
+            if hoy.month >= mesNacimiento:
+                puedeDonar = True
+            else:
+                puedeDonar = False
+        else:
+            puedeDonar = False
+        return puedeDonar
+        
     def registrar():
         cedula = campoCedula.get()
         fecha = campoFecha.get()
@@ -105,6 +122,10 @@ def insertarDonador():
         partesFecha = fecha.split("/")
         fechaTupla = (int(partesFecha[0]), int(partesFecha[1]), int(partesFecha[2]))
 
+        if fechaAux(fechaTupla):
+            messagebox.showinfo("Edad", "Debido a su fecha de nacimiento usted ya puede donar.")
+        else:
+            messagebox.showinfo("Edad", "Debido a su fecha de nacimiento usted aún no puede donar.")
         if len(partesNombre) != 3:
             messagebox.showerror("Nombre inválido", "Debe ingresar su nombre y dos apellidos.")
             return
