@@ -6,6 +6,26 @@ import tkinter as tk
 from tkinter import messagebox
 tiposSangre = ("O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-")
 baseDatos = []
+lugaresDonacion = {
+    "1": ["El Banco Nacional de sangre", "Hospital México", "Hospital San Juan de Dios"],
+    "2": ["Hospital San Rafael de Alajuela", "Hospital de San Ramón", "Hospital del Cantón Norteño"],
+    "3": ["Hospital Max Peralta"],
+    "4": ["Hospital San Vicente de Paúl"],
+    "5": ["Hospital La Anexión en Nicoya", "Hospital Enrique Baltodano de Liberia"],
+    "6": ["Hospital Monseñor Sanabria"],
+    "7": ["Hospital Tony Facio", "Hospital de Guápiles"]
+}
+
+nombresProvincia = {
+    "1": "San José",
+    "2": "Alajuela", 
+    "3": "Cartago",
+    "4": "Heredia",
+    "5": "Guanacaste",
+    "6": "Puntarenas",
+    "7": "Limón",
+    "8": "Naturalizado"
+}
 
 if os.path.exists("baseDatos.txt"):
     with open("baseDatos.txt", "rb") as archivo:
@@ -109,7 +129,7 @@ def insertarDonador():
         if not re.match(r'^[246789]\d{3}-\d{4}$', tel):
             messagebox.showerror("Teléfono inválido", "siga los parámetros(####-####).")
             return
-        if not re.match(r'^[a-zA-Z0-9]+@[a-zA-Z]+\.[a-zA-Z]+(\.[a-zA-Z]+)?$', correo):
+        if not re.match(r'^[a-zA-Z0-9.]+@[a-zA-Z]+\.[a-zA-Z]+(\.[a-zA-Z]+)?$', correo):
             messagebox.showerror("Correo inválido", "siga los parámetros")
             return
         if not pesoAux(peso):
@@ -122,14 +142,21 @@ def insertarDonador():
         partesFecha = fecha.split("/")
         fechaTupla = (int(partesFecha[0]), int(partesFecha[1]), int(partesFecha[2]))
 
-        if fechaAux(fechaTupla):
-            messagebox.showinfo("Edad", "Debido a su fecha de nacimiento usted ya puede donar.")
-        else:
-            messagebox.showinfo("Edad", "Debido a su fecha de nacimiento usted aún no puede donar.")
+        
         if len(partesNombre) != 3:
             messagebox.showerror("Nombre inválido", "Debe ingresar su nombre y dos apellidos.")
             return
         
+        if not fechaAux(fechaTupla):
+            messagebox.showerror("Edad", "Debido a que es menor de edad usted no puede donar.")
+            return
+        
+        provincia = cedula[0]
+        lugares = lugaresDonacion[provincia]
+        lugaresTexto = "\n".join(lugares)
+        messagebox.showinfo("Lugar de donación", f"Debido a que nació en {nombresProvincia[provincia]}, podría donar en:\n{lugaresTexto}")
+
+            
         filaDonador = [partesNombre[0], partesNombre[1], partesNombre[2], cedula, indiceSangre, sexo, fechaTupla, float(peso), correo, tel, 1, 0]
         baseDatos.append(filaDonador)
         with open("baseDatos.txt", "wb") as archivo:
