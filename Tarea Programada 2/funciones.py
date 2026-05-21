@@ -4,6 +4,11 @@ import pickle
 import re
 import tkinter as tk
 from tkinter import messagebox
+import random
+from faker import Faker
+fake = Faker()
+erCedulas=r'^\d{1}\d{4}\d{4}$'
+cedulasUsadas = []
 tiposSangre = ("O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-")
 baseDatos = []
 lugaresDonacion = {
@@ -186,7 +191,24 @@ def insertarDonador():
 
 
 def generarDonadores():
-    print()
+    for i in range(cantidad):
+        individuo = []
+        individuo.append(fake.name())
+        genero=random.randint(1,2)
+        if genero == 1:
+            gen = True
+        else:
+            gen = False
+        individuo.append(gen)
+        cedulagen= False
+        while cedulagen == False:
+            cedula = f"{random.randint(1,9)}{random.randint(0,9999):04d}{random.randint(0,9999):04d}"
+            if re.match(erCedulas, cedula) and cedula not in cedulasUsadas:
+                cedulasUsadas.append(cedula)
+                individuo.append(cedula)
+                cedulagen = True
+        baseDatos.append(individuo)
+    return nombres
 
 def actualizarDatos():
     print()
