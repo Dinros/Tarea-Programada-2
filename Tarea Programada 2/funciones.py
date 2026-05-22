@@ -4,11 +4,6 @@ import pickle
 import re
 import tkinter as tk
 from tkinter import messagebox
-import random
-from faker import Faker
-fake = Faker()
-erCedulas=r'^\d{1}\d{4}\d{4}$'
-cedulasUsadas = []
 tiposSangre = ("O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-")
 baseDatos = []
 lugaresDonacion = {
@@ -30,6 +25,27 @@ nombresProvincia = {
     "6": "Puntarenas",
     "7": "Limón",
     "8": "Naturalizado"
+}
+
+infoSangre = {
+    "O+": "El tipo de sangre más común, 1 de cada 3 personas (37.4%). Se recomienda donar glóbulos rojos dobles y sangre entera.",
+    "O-": "Solo el 6.6% de la población. Donante universal. Se recomienda donar glóbulos rojos dobles y sangre entera.",
+    "A+": "Segundo tipo más común (35.7%). Se recomienda donar sangre entera y plaquetas.",
+    "A-": "El 6.3% de la población. Se recomienda donar sangre entera y glóbulos rojos dobles.",
+    "B+": "El 8.5% de la población, o cada 1 de 12 personas tienen sangre tipo B+. Los donantes de sangre tipo B+ pueden lograr el mayor impacto con donaciones de sangre entera y de glóbulos rojos dobles.",
+    "B-": "La sangre tipo B- se encuentra en 1 de cada 67 personas, formando el 1.5% de la población. Es un tipo de sangre menos común. A los donantes de sangre tipo Bse les recomienda que donen sangre entera o plaquetas.",
+    "AB+": "AB+ es el tipo de sangre más raro deltipo ABO, con sólo 1 de cada 29 personas, o 3.4% de la población con este tipo. A los donantes AB+ se les recomienda hacer donaciones de plaquetas y de plasma.",
+    "AB-": "El tipo de sangre más raro, el AB-, sólo lo tiene el 0.6% de la población, o 1 de cada 67 personas. A los donantes del tipo de sangre AB- se les recomienda donar plaquetas y plasma."
+}
+
+razones = {
+    1: "Enfermedades Infecciosas/Crónicas: VIH, Hepatitis B o C, sífilis, tuberculosis, diabetes insulinodependiente.",
+    2: "Conductas de Riesgo: nuevas parejas sexuales o más de una en los últimos 3 meses.",
+    3: "Factores de Salud Física: hemoglobina bajo o alto, presión arterial inestable, fiebre.",
+    4: "Procedimientos Médicos: transfusiones, trasplantes, cirugías, tatuajes, piercing recientes.",
+    5: "Uso de Medicamentos: fármacos inyectables sin receta o ciertos medicamentos.",
+    6: "Estilo de Vida y Viajes: drogas recreativas, alcohol en últimas 24 horas, viajes a zonas endémicas.",
+    7: "Situaciones Específicas: embarazo, lactancia o menstruación."
 }
 
 if os.path.exists("baseDatos.txt"):
@@ -168,6 +184,13 @@ def insertarDonador():
             pickle.dump(baseDatos, archivo)
         messagebox.showinfo("Éxito", "Donador registrado correctamente.")
 
+        tipoActual = tiposSangre[indiceSangre]
+        messagebox.showinfo("Tipo de sangre", infoSangre[tipoActual])
+
+        if tipoActual == "A+" or tipoActual == "A-":
+            messagebox.showinfo("Recomendación", 
+                "Dado que su tipo de sangre es A+ o A-, le recomendamos ver el siguiente video:\nParticularidades de la sangre tipo A: Responde diferente al estrés según la ciencia.\nhttps://www.facebook.com/share/v/1GNXfvUBgd/")
+
 
         
     def limpiar():
@@ -191,30 +214,27 @@ def insertarDonador():
 
 
 def generarDonadores():
-    for i in range(cantidad):
-        individuo = []
-        individuo.append(fake.name())
-        genero=random.randint(1,2)
-        if genero == 1:
-            gen = True
-        else:
-            gen = False
-        individuo.append(gen)
-        cedulagen= False
-        while cedulagen == False:
-            cedula = f"{random.randint(1,9)}{random.randint(0,9999):04d}{random.randint(0,9999):04d}"
-            if re.match(erCedulas, cedula) and cedula not in cedulasUsadas:
-                cedulasUsadas.append(cedula)
-                individuo.append(cedula)
-                cedulagen = True
-        baseDatos.append(individuo)
-    return nombres
+    print()
 
 def actualizarDatos():
     print()
 
 def eliminarDonador():
-    print()
+    ventanaInsertarDonador = tk.Toplevel()
+    ventanaInsertarDonador.title("Eliminar Donador")
+    ventanaInsertarDonador.geometry("400x500")
+
+    etiquetaCedula = tk.Label(ventanaInsertarDonador, text = "Cédula:")
+    etiquetaCedula.pack()
+    
+    campoCedula = tk.Entry(ventanaInsertarDonador)
+    campoCedula.pack()
+
+    if campoCedula not in baseDatos:
+        messagebox.showerror("Cédula inexistente", "La cédula ingresada no existe, verifique si está digitada correctamente.")
+        return
+    else: 
+        print(razones)
 
 def insertarLugar():
     print()
