@@ -214,7 +214,55 @@ def insertarDonador():
 
 
 def generarDonadores():
-    print()
+    #Input(Ingrese la cantidad de personas que desea generar:)
+    erCedulas=r'^\d{1}\d{4}\d{4}$'
+    hoy=date.today()
+    nombres = []
+    for i in range():
+        individuo = []
+        individuo.append(fake.name())
+        genero=random.randint(1,2)
+        fechaNacimientoGen=[]
+        diaGenerado=randrange(1,32)
+        mesGenerado=randrange(1,13)
+        annoGenerado=randrange(1900,(hoy.year+1))
+        pesoGenerado=randint(40,200)
+        if pesoGenerado < 50 or pesoGenerado > 120:
+            puedeDonarPeso = True
+        else:
+            puedeDonarPeso = False
+        individuo.append(pesoGenerado)
+        if hoy.year - annoGenerado > 18:
+            puedeDonar = True
+        elif hoy.year - annoGenerado == 18:
+            if hoy.month >= mesGenerado:
+                puedeDonar = True
+            else:
+                puedeDonar = False
+        else:
+            puedeDonar = False
+        fechaNacimientoGen.append(diaGenerado)
+        fechaNacimientoGen.append(mesGenerado)
+        fechaNacimientoGen.append(annoGenerado)
+        individuo.append(fechaNacimientoGen)
+        tipoSangreIndice = randrange(len(tiposSangre))
+        tipoSangreGenerado=tiposSangre[tipoSangreIndice]
+        individuo.append(tipoSangreGenerado)
+        if genero == 1:
+            gen = True
+        else:
+            gen = False
+        individuo.append(gen)
+        cedulagen= False
+        while cedulagen == False:
+            cedula = f"{random.randint(1,9)}{random.randint(0,9999):04d}{random.randint(0,9999):04d}"
+            if re.match(erCedulas, cedula) and cedula not in cedulasUsadas:
+                cedulasUsadas.append(cedula)
+                individuo.append(cedula)
+                cedulagen = True
+        nombres.append(individuo)
+    return
+
 
 def actualizarDatos():
     print()
