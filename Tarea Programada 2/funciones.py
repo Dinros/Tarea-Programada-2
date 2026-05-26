@@ -53,7 +53,112 @@ if os.path.exists("baseDatos.txt"):
         baseDatos = pickle.load(archivo)
 
 
+        
+def pesoAux(peso):
+    try:
+        pesoFloat = float(peso)
+        if pesoFloat > 50 and pesoFloat < 120:
+            return True
+        return False
+    except ValueError:
+        return False
+
+def fechaAux(fechaTupla):
+    hoy = date.today()
+    annoNacimiento = fechaTupla[2]
+    mesNacimiento = fechaTupla[1]
+
+    if hoy.year - annoNacimiento > 18:
+        puedeDonar = True
+    elif hoy.year - annoNacimiento == 18:
+        if hoy.month >= mesNacimiento:
+            puedeDonar = True
+        else:
+            puedeDonar = False
+    else:
+        puedeDonar = False
+    return puedeDonar
+        
+
+def cedulaExistente(cedula):
+    for i in range(len(baseDatos)):
+        if baseDatos[i][3] == cedula:
+            return i
+    return -1
+
+def registrar(campoCedula, campoNombre, campoFecha, campoPeso, campoTel, campoCorreo, vTipoSangre, vSexo, ventanaInsertarDonador):
+    cedula = campoCedula.get()
+    fecha = campoFecha.get()
+    tel = campoTel.get()
+    correo = campoCorreo.get()
+    peso = campoPeso.get()
+
+    if not re.match(r'^[1-9]-\d{4}-\d{4}$', cedula):
+        messagebox.showerror("Cédula inválida", "el primer dígito no puede ser 0, siga los parámetros (#-####-####).")
+        return
+    if cedulaExistente(cedula) != -1:
+        messagebox.showerror("Error", "Esta cédula ya está registrada.")
+        return
+    if not re.match(r'^\d{2}/\d{2}/\d{4}$', fecha):
+        messagebox.showerror("Fecha inválida", "siga los parámetros (DD/MM/AAAA).")
+        return
+    if not re.match(r'^[246789]\d{3}-\d{4}$', tel):
+        messagebox.showerror("Teléfono inválido", "siga los parámetros(####-####).")
+        return
+    if not re.match(r'^[a-zA-Z0-9.]+@[a-zA-Z]+\.[a-zA-Z]+(\.[a-zA-Z]+)?$', correo):
+        messagebox.showerror("Correo inválido", "siga los parámetros")
+        return
+    if not pesoAux(peso):
+        messagebox.showerror("Usted no puede donar sangre", "debe pesar entre 50 y 120 kg.")
+        return
+    
+    partesNombre = campoNombre.get().split()
+    indiceSangre = tiposSangre.index(vTipoSangre.get())
+    sexo = vSexo.get()
+    partesFecha = fecha.split("/")
+    fechaTupla = (int(partesFecha[0]), int(partesFecha[1]), int(partesFecha[2]))
+
+    
+    if len(partesNombre) != 3:
+        messagebox.showerror("Nombre inválido", "Debe ingresar su nombre y dos apellidos.")
+        return
+    
+    if not fechaAux(fechaTupla):
+        messagebox.showerror("Edad", "Debido a que es menor de edad usted no puede donar.")
+        return
+    
+    provincia = cedula[0]
+    lugares = lugaresDonacion[provincia]
+    lugaresTexto = "\n".join(lugares)
+    messagebox.showinfo("Lugar de donación", f"Debido a que nació en {nombresProvincia[provincia]}, podría donar en:\n{lugaresTexto}")
+
+        
+    filaDonador = [partesNombre[0], partesNombre[1], partesNombre[2], cedula, indiceSangre, sexo, fechaTupla, float(peso), correo, tel, 1, 0]
+    baseDatos.append(filaDonador)
+    with open("baseDatos.txt", "wb") as archivo:
+        pickle.dump(baseDatos, archivo)
+    messagebox.showinfo("Éxito", "Donador registrado correctamente.")
+
+    tipoActual = tiposSangre[indiceSangre]
+    messagebox.showinfo("Tipo de sangre", infoSangre[tipoActual])
+
+    if tipoActual == "A+" or tipoActual == "A-":
+        messagebox.showinfo("Recomendación", 
+            "Dado que su tipo de sangre es A+ o A-, le recomendamos ver el siguiente video:\nParticularidades de la sangre tipo A: Responde diferente al estrés según la ciencia.\nhttps://www.facebook.com/share/v/1GNXfvUBgd/")
+
+def limpiar(campoCedula, campoNombre, campoFecha, campoPeso, campoTel, campoCorreo, vTipoSangre, vSexo):
+    campoCedula.delete(0, tk.END)
+    campoNombre.delete(0, tk.END)
+    campoFecha.delete(0, tk.END)
+    vTipoSangre.set("O+")
+    vSexo.set(True)
+    campoPeso.delete(0, tk.END)
+    campoTel.delete(0, tk.END)
+    campoCorreo.delete(0, tk.END)
+
+
 def insertarDonador():
+
     ventanaInsertarDonador = tk.Toplevel()
     ventanaInsertarDonador.title("Insertar Donador")
     ventanaInsertarDonador.geometry("400x500")
@@ -108,105 +213,12 @@ def insertarDonador():
 
     campoCorreo = tk.Entry(ventanaInsertarDonador)
     campoCorreo.pack()
-
-    def pesoAux(peso):
-        try:
-            pesoFloat = float(peso)
-            if pesoFloat > 50 and pesoFloat < 120:
-                return True
-            return False
-        except ValueError:
-            return False
-        
-    def fechaAux(fechaTupla):
-        hoy = date.today()
-        annoNacimiento = fechaTupla[2]
-        mesNacimiento = fechaTupla[1]
-
-        if hoy.year - annoNacimiento > 18:
-            puedeDonar = True
-        elif hoy.year - annoNacimiento == 18:
-            if hoy.month >= mesNacimiento:
-                puedeDonar = True
-            else:
-                puedeDonar = False
-        else:
-            puedeDonar = False
-        return puedeDonar
-        
-    def registrar():
-        cedula = campoCedula.get()
-        fecha = campoFecha.get()
-        tel = campoTel.get()
-        correo = campoCorreo.get()
-        peso = campoPeso.get()
-
-        if not re.match(r'^[1-9]-\d{4}-\d{4}$', cedula):
-            messagebox.showerror("Cédula inválida", "el primer dígito no puede ser 0, siga los parámetros (#-####-####).")
-            return
-        if not re.match(r'^\d{2}/\d{2}/\d{4}$', fecha):
-            messagebox.showerror("Fecha inválida", "siga los parámetros (DD/MM/AAAA).")
-            return
-        if not re.match(r'^[246789]\d{3}-\d{4}$', tel):
-            messagebox.showerror("Teléfono inválido", "siga los parámetros(####-####).")
-            return
-        if not re.match(r'^[a-zA-Z0-9.]+@[a-zA-Z]+\.[a-zA-Z]+(\.[a-zA-Z]+)?$', correo):
-            messagebox.showerror("Correo inválido", "siga los parámetros")
-            return
-        if not pesoAux(peso):
-            messagebox.showerror("Usted no puede donar sangre", "debe pesar entre 50 y 120 kg.")
-            return
-        
-        partesNombre = campoNombre.get().split()
-        indiceSangre = tiposSangre.index(vTipoSangre.get())
-        sexo = vSexo.get()
-        partesFecha = fecha.split("/")
-        fechaTupla = (int(partesFecha[0]), int(partesFecha[1]), int(partesFecha[2]))
-
-        
-        if len(partesNombre) != 3:
-            messagebox.showerror("Nombre inválido", "Debe ingresar su nombre y dos apellidos.")
-            return
-        
-        if not fechaAux(fechaTupla):
-            messagebox.showerror("Edad", "Debido a que es menor de edad usted no puede donar.")
-            return
-        
-        provincia = cedula[0]
-        lugares = lugaresDonacion[provincia]
-        lugaresTexto = "\n".join(lugares)
-        messagebox.showinfo("Lugar de donación", f"Debido a que nació en {nombresProvincia[provincia]}, podría donar en:\n{lugaresTexto}")
-
-            
-        filaDonador = [partesNombre[0], partesNombre[1], partesNombre[2], cedula, indiceSangre, sexo, fechaTupla, float(peso), correo, tel, 1, 0]
-        baseDatos.append(filaDonador)
-        with open("baseDatos.txt", "wb") as archivo:
-            pickle.dump(baseDatos, archivo)
-        messagebox.showinfo("Éxito", "Donador registrado correctamente.")
-
-        tipoActual = tiposSangre[indiceSangre]
-        messagebox.showinfo("Tipo de sangre", infoSangre[tipoActual])
-
-        if tipoActual == "A+" or tipoActual == "A-":
-            messagebox.showinfo("Recomendación", 
-                "Dado que su tipo de sangre es A+ o A-, le recomendamos ver el siguiente video:\nParticularidades de la sangre tipo A: Responde diferente al estrés según la ciencia.\nhttps://www.facebook.com/share/v/1GNXfvUBgd/")
-
-
-        
-    def limpiar():
-        campoCedula.delete(0, tk.END)
-        campoNombre.delete(0, tk.END)
-        campoFecha.delete(0, tk.END)
-        vTipoSangre.set("O+")
-        vSexo.set(True)
-        campoPeso.delete(0, tk.END)
-        campoTel.delete(0, tk.END)
-        campoCorreo.delete(0, tk.END)
     
-    botonRegistrar = tk.Button(ventanaInsertarDonador, text="Registrar", command=registrar)
+    botonRegistrar = tk.Button(ventanaInsertarDonador, text="Registrar", 
+    command=lambda: registrar(campoCedula, campoNombre, campoFecha, campoPeso, campoTel, campoCorreo, vTipoSangre, vSexo, ventanaInsertarDonador))
     botonRegistrar.pack()
 
-    botonLimpiar = tk.Button(ventanaInsertarDonador, text="Limpiar", command=limpiar)
+    botonLimpiar = tk.Button(ventanaInsertarDonador, text="Limpiar", command=lambda: limpiar(campoCedula, campoNombre, campoFecha, campoPeso, campoTel, campoCorreo, vTipoSangre, vSexo))
     botonLimpiar.pack()
 
     botonRegresar = tk.Button(ventanaInsertarDonador, text="Regresar", command=ventanaInsertarDonador.destroy)
@@ -214,81 +226,126 @@ def insertarDonador():
 
 
 def generarDonadores():
-    #Input(Ingrese la cantidad de personas que desea generar:)
-    erCedulas=r'^\d{1}\d{4}\d{4}$'
-    hoy=date.today()
-    nombres = []
-    for i in range():
-        individuo = []
-        individuo.append(fake.name())
-        genero=random.randint(1,2)
-        fechaNacimientoGen=[]
-        diaGenerado=randrange(1,32)
-        mesGenerado=randrange(1,13)
-        annoGenerado=randrange(1900,(hoy.year+1))
-        pesoGenerado=randint(40,200)
-        if pesoGenerado < 50 or pesoGenerado > 120:
-            puedeDonarPeso = True
-        else:
-            puedeDonarPeso = False
-        individuo.append(pesoGenerado)
-        if hoy.year - annoGenerado > 18:
-            puedeDonar = True
-        elif hoy.year - annoGenerado == 18:
-            if hoy.month >= mesGenerado:
-                puedeDonar = True
-            else:
-                puedeDonar = False
-        else:
-            puedeDonar = False
-        fechaNacimientoGen.append(diaGenerado)
-        fechaNacimientoGen.append(mesGenerado)
-        fechaNacimientoGen.append(annoGenerado)
-        individuo.append(fechaNacimientoGen)
-        tipoSangreIndice = randrange(len(tiposSangre))
-        tipoSangreGenerado=tiposSangre[tipoSangreIndice]
-        individuo.append(tipoSangreGenerado)
-        if genero == 1:
-            gen = True
-        else:
-            gen = False
-        individuo.append(gen)
-        cedulagen= False
-        while cedulagen == False:
-            cedula = f"{random.randint(1,9)}{random.randint(0,9999):04d}{random.randint(0,9999):04d}"
-            if re.match(erCedulas, cedula) and cedula not in cedulasUsadas:
-                cedulasUsadas.append(cedula)
-                individuo.append(cedula)
-                cedulagen = True
-        nombres.append(individuo)
-    return
-
+    print()
 
 def actualizarDatos():
     print()
 
+def buscar(campoCedula, ventanaEliminar):
+    cedula = campoCedula.get()
+    i  = cedulaExistente(cedula)
+
+    if i == -1:
+        messagebox.showerror("Error", f"La persona con cédula {cedula} no está registrada.")  
+    else:
+        vRazon = tk.StringVar()
+        vRazon.set(list(razones.values())[0])
+
+        listaRazones = tk.OptionMenu(ventanaEliminar, vRazon, *razones.values())
+        listaRazones.pack()
+
+        botonConfirmar = tk.Button(ventanaEliminar, text="Confirmar", command=lambda: confirmar(i, vRazon, ventanaEliminar))
+        botonConfirmar.pack()
+        botonCancelar = tk.Button(ventanaEliminar, text="Cancelar", command=cancelar)
+        botonCancelar.pack()
+
+def confirmar(i, vRazon,ventanaEliminar):
+    for numRazones, descripcion in razones.items():
+        if descripcion == vRazon.get():
+            baseDatos[i][11] = numRazones
+            break
+    baseDatos[i][10] = 0
+    with open("baseDatos.txt", "wb") as archivo:
+        pickle.dump(baseDatos, archivo)
+    messagebox.showinfo("Éxito", "Donador eliminado satisfactoriamente.")
+    print(baseDatos)
+    ventanaEliminar.destroy()
+
+def cancelar():
+    messagebox.showinfo("Cancelado", "Donador NO eliminado.")
+
+
 def eliminarDonador():
-    ventanaInsertarDonador = tk.Toplevel()
-    ventanaInsertarDonador.title("Eliminar Donador")
-    ventanaInsertarDonador.geometry("400x500")
+    ventanaEliminar = tk.Toplevel()
+    ventanaEliminar.title("Eliminar Donador")
+    ventanaEliminar.geometry("400x500")
 
-    etiquetaCedula = tk.Label(ventanaInsertarDonador, text = "Cédula:")
+    etiquetaCedula = tk.Label(ventanaEliminar, text = "Cédula:")
     etiquetaCedula.pack()
-    
-    campoCedula = tk.Entry(ventanaInsertarDonador)
-    campoCedula.pack()
 
-    if campoCedula not in baseDatos:
-        messagebox.showerror("Cédula inexistente", "La cédula ingresada no existe, verifique si está digitada correctamente.")
+    campoCedula = tk.Entry(ventanaEliminar)
+    campoCedula.pack()
+    
+    botonBuscar = tk.Button(ventanaEliminar, text="Buscar", command=lambda: buscar(campoCedula, ventanaEliminar))
+    botonBuscar.pack()
+
+    botonRegresar = tk.Button(ventanaEliminar, text = "Regresar", command = ventanaEliminar.destroy)
+    botonRegresar.pack()
+
+def insertar(areaTexto, vProvincia):
+    lugar = areaTexto.get("1.0", tk.END).strip()
+    if not lugar:
+        messagebox.showerror("Error", "El lugar no puede estar vacío.")
         return
-    else: 
-        print(razones)
+    numProvincia = ""
+    for num, nombre in nombresProvincia.items():
+        if nombre == vProvincia.get():
+            numProvincia = num
+            break
+    if lugar in lugaresDonacion[numProvincia]:
+        messagebox.showerror("Error", "Este lugar ya está registrado en esa provincia.")
+        return
+    lugaresDonacion[numProvincia].append(lugar)
+    messagebox.showinfo("Éxito", f"{lugar} agregado correctamente a {vProvincia.get()}.")
+    areaTexto.delete("1.0", tk.END) 
 
 def insertarLugar():
-    print()
+    ventanaInsertarLugar = tk.Toplevel()
+    ventanaInsertarLugar.title("Insertar lugar")
+    ventanaInsertarLugar.geometry("400x500")
+    
+    etiquetaProvincia = tk.Label(ventanaInsertarLugar, text = "Seleccione la provincia: ")
+    etiquetaProvincia.pack()
 
-def reportes():
-    print()
+    vProvincia = tk.StringVar()
+    vProvincia.set("San José")
 
-def salir():
-    print()
+    listaProvincia = tk.OptionMenu(ventanaInsertarLugar,vProvincia, *nombresProvincia.values())
+    listaProvincia.pack()
+
+    etiquetaLugar = tk.Label(ventanaInsertarLugar, text = "Nuevo lugar de donación:")
+    etiquetaLugar.pack()
+
+    areaTexto = tk.Text(ventanaInsertarLugar, height = 3, width = 30)
+    areaTexto.pack() 
+
+    botonInsertar = tk.Button(ventanaInsertarLugar, text="Insertar", command=lambda: insertar(areaTexto, vProvincia))  # ← BIEN
+    botonInsertar.pack()
+
+    botonSalir = tk.Button(ventanaInsertarLugar, text="Salir", command=ventanaInsertarLugar.destroy)
+    botonSalir.pack()
+
+
+def reportes(reporteRangoEdad,reporteListaCompleta, reporteQuienDonar, reporteNoActivos):
+    ventanaReportes = tk.Toplevel()
+    ventanaReportes.title("Reportes")
+    ventanaReportes.geometry("400x300")
+
+    botonRangoEdad = tk.Button(ventanaReportes, text="Por rango de edad", command = reporteRangoEdad)
+    botonRangoEdad.pack()
+
+    botonListaCompleta = tk.Button(ventanaReportes, text="Lista completa", command = reporteListaCompleta)
+    botonListaCompleta.pack()
+
+    botonQuienDonar = tk.Button(ventanaReportes, text="¿A quién puede donar?", command = reporteQuienDonar)
+    botonQuienDonar.pack()
+
+    botonNoActivos = tk.Button(ventanaReportes, text="Donantes no activos", command = reporteNoActivos)
+    botonNoActivos.pack()
+
+    botonRegresar = tk.Button(ventanaReportes, text="Regresar", command = ventanaReportes.destroy)
+    botonRegresar.pack()
+
+def salir(ventana):
+    messagebox.showinfo("Hasta luego", "Donar sangre, es donar vida")
+    ventana.destroy()

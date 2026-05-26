@@ -16,7 +16,7 @@ botonInsertarLugar = tk.Button(ventana, text = "Insertar lugar de donación", co
 botonInsertarLugar.pack()
 botonReportes = tk.Button(ventana, text = "Reportes", command = reportes)
 botonReportes.pack()
-botonSalir = tk.Button(ventana, text = "Salir", command = salir) 
+botonSalir = tk.Button(ventana, text="Salir", command = lambda: salir(ventana)) 
 botonSalir.pack()
 
 import os
