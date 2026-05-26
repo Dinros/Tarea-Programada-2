@@ -349,3 +349,31 @@ def reportes(reporteRangoEdad,reporteListaCompleta, reporteQuienDonar, reporteNo
 def salir(ventana):
     messagebox.showinfo("Hasta luego", "Donar sangre, es donar vida")
     ventana.destroy()
+
+def reporteListaCompleta():
+    from datetime import datetime
+    ahora = datetime.now()
+    fechaHora = ahora.strftime("%d-%m-%y-%H-%M-%S")
+    nombreHTML = "reporteListaCompleta_" + fechaHora + ".html"
+
+    datosOrdenados = sorted(baseDatos, key = lambda fila: fila[3][0])
+
+    html = open(nombreHTML, "w", encoding = "utf-8")
+    html.write("<!DOCTYPE html>\n<html>\n<body>\n")
+    html.write("<h1>Lista Completa de Donadores</h1>\n")
+    html.write(f"<h2>{fechaHora}</h2>\n")
+    html.write("<table border='1'>\n")
+    html.write("<tr><th>Cédula</th><th>Nombre</th><th>Tipo Sangre</th><th>Fecha Nac.</th><th>Peso</th><th>Sexo</th><th>Teléfono</th><th>Correo</th></tr>\n")
+
+    for fila in datosOrdenados:
+        nombre = fila[0] + " " + fila[1] + " " + fila[2]
+        sangre = tiposSangre[fila[4]]
+        fecha = f"{fila[6][0]}/{fila[6][1]}/{fila[6][2]}"
+        sexo = "Masculino" if fila[5] else "Femenino"
+        html.write(f"<tr><td>{fila[3]}</td><td>{nombre}</td><td>{sangre}</td><td>{fecha}</td><td>{fila[7]}</td><td>{sexo}</td><td>{fila[9]}</td><td>{fila[8]}</td></tr>\n")
+     
+    html.write("</table\n</body>\n</html>")
+    html.close()
+    messagebox.showinfo("Éxito", "Reporte creado satisfactoriamente.")
+
+
