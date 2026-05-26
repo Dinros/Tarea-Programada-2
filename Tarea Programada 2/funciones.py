@@ -324,32 +324,7 @@ def insertarLugar():
 
     botonSalir = tk.Button(ventanaInsertarLugar, text="Salir", command=ventanaInsertarLugar.destroy)
     botonSalir.pack()
-
-
-def reportes(reporteRangoEdad,reporteListaCompleta, reporteQuienDonar, reporteNoActivos):
-    ventanaReportes = tk.Toplevel()
-    ventanaReportes.title("Reportes")
-    ventanaReportes.geometry("400x300")
-
-    botonRangoEdad = tk.Button(ventanaReportes, text="Por rango de edad", command = reporteRangoEdad)
-    botonRangoEdad.pack()
-
-    botonListaCompleta = tk.Button(ventanaReportes, text="Lista completa", command = reporteListaCompleta)
-    botonListaCompleta.pack()
-
-    botonQuienDonar = tk.Button(ventanaReportes, text="¿A quién puede donar?", command = reporteQuienDonar)
-    botonQuienDonar.pack()
-
-    botonNoActivos = tk.Button(ventanaReportes, text="Donantes no activos", command = reporteNoActivos)
-    botonNoActivos.pack()
-
-    botonRegresar = tk.Button(ventanaReportes, text="Regresar", command = ventanaReportes.destroy)
-    botonRegresar.pack()
-
-def salir(ventana):
-    messagebox.showinfo("Hasta luego", "Donar sangre, es donar vida")
-    ventana.destroy()
-
+    
 def reporteListaCompleta():
     from datetime import datetime
     ahora = datetime.now()
@@ -376,4 +351,53 @@ def reporteListaCompleta():
     html.close()
     messagebox.showinfo("Éxito", "Reporte creado satisfactoriamente.")
 
+def reporteNoActivos():
+    from datetime import datetime
+    ahora = datetime.now()
+    fechaHora = ahora.strftime("%d-%m-%y-%H-%M-%S")
+    nombreHTML = "reporteNoActivos_" + fechaHora + ".html"
+
+    html = open(nombreHTML, "w", encoding="utf-8")
+    html.write("<!DOCTYPE html>\n<html>\n<body>\n")
+    html.write("<h1>Donantes No Activos</h1>\n")
+    html.write(f"<h2>{fechaHora}</h2>\n")
+    html.write("<table border='1'>\n")
+    html.write("<tr><th>Justificación</th><th>Cédula</th><th>Nombre</th><th>Tipo Sangre</th><th>Fecha Nac.</th><th>Peso</th><th>Sexo</th><th>Teléfono</th><th>Correo</th></tr>\n")
+
+    for fila in baseDatos:
+        if fila[10] == 0:  
+            nombre = fila[0] + " " + fila[1] + " " + fila[2]
+            sangre = tiposSangre[fila[4]]
+            fecha = f"{fila[6][0]}/{fila[6][1]}/{fila[6][2]}"
+            sexo = "Masculino" if fila[5] else "Femenino"
+            justificacion = razones[fila[11]] 
+            html.write(f"<tr><td>{justificacion}</td><td>{fila[3]}</td><td>{nombre}</td><td>{sangre}</td><td>{fecha}</td><td>{fila[7]}</td><td>{sexo}</td><td>{fila[9]}</td><td>{fila[8]}</td></tr>\n")
+    
+    html.write("</table>\n</body>\n</html>")
+    html.close()
+    messagebox.showinfo("Éxito", "Reporte creado satisfactoriamente.")
+
+def reportes():
+    ventanaReportes = tk.Toplevel()
+    ventanaReportes.title("Reportes")
+    ventanaReportes.geometry("400x300")
+
+    botonRangoEdad = tk.Button(ventanaReportes, text="Por rango de edad", command = reporteRangoEdad)
+    botonRangoEdad.pack()
+
+    botonListaCompleta = tk.Button(ventanaReportes, text="Lista completa", command = reporteListaCompleta)
+    botonListaCompleta.pack()
+
+    botonQuienDonar = tk.Button(ventanaReportes, text="¿A quién puede donar?", command = reporteQuienDonar)
+    botonQuienDonar.pack()
+
+    botonNoActivos = tk.Button(ventanaReportes, text="Donantes no activos", command = reporteNoActivos)
+    botonNoActivos.pack()
+
+    botonRegresar = tk.Button(ventanaReportes, text="Regresar", command = ventanaReportes.destroy)
+    botonRegresar.pack()
+
+def salir(ventana):
+    messagebox.showinfo("Hasta luego", "Donar sangre, es donar vida")
+    ventana.destroy()
 
