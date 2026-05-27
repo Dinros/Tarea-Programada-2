@@ -48,6 +48,17 @@ razones = {
     7: "Situaciones Específicas: embarazo, lactancia o menstruación."
 }
 
+compatibilidad = {
+    "O-":  ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"],
+    "O+":  ["O+", "A+", "B+", "AB+"],
+    "A-":  ["A-", "A+", "AB-", "AB+"],
+    "A+":  ["A+", "AB+"],
+    "B-":  ["B-", "B+", "AB-", "AB+"],
+    "B+":  ["B+", "AB+"],
+    "AB-": ["AB-", "AB+"],
+    "AB+": ["AB+"]
+}
+
 if os.path.exists("baseDatos.txt"):
     with open("baseDatos.txt", "rb") as archivo:
         baseDatos = pickle.load(archivo)
@@ -324,7 +335,9 @@ def insertarLugar():
 
     botonSalir = tk.Button(ventanaInsertarLugar, text="Salir", command=ventanaInsertarLugar.destroy)
     botonSalir.pack()
-    
+
+
+
 def reporteListaCompleta():
     from datetime import datetime
     ahora = datetime.now()
@@ -351,6 +364,54 @@ def reporteListaCompleta():
     html.close()
     messagebox.showinfo("Éxito", "Reporte creado satisfactoriamente.")
 
+def generarReporteQuienDonar(vTipo, ventana):
+    from datetime import datetime
+    ahora = datetime.now()
+    fechaHora = ahora.strftime("%d-%m-%y-%H-%M-%S")
+    nombreHTML = "reporteQuienDonar_" + fechaHora + ".html"
+    
+    tipoSeleccionado = vTipo.get()
+    indiceTipo = tiposSangre.index(tipoSeleccionado)
+    puedeDonarA = compatibilidad[tipoSeleccionado]
+    
+    html = open(nombreHTML, "w", encoding="utf-8")
+    html.write("<!DOCTYPE html>\n<html>\n<body>\n")
+    html.write("<h1>¿A quién puede donar?</h1>\n")
+    html.write(f"<h2>{fechaHora}</h2>\n")
+    html.write(f"<p>Tipo de sangre: {tipoSeleccionado} puede donar a: {', '.join(puedeDonarA)}</p>\n")
+    html.write("<table border='1'>\n")
+    html.write("<tr><th>Cédula</th><th>Nombre</th><th>Tipo Sangre</th><th>Teléfono</th><th>Correo</th></tr>\n")
+    
+    for fila in baseDatos:
+        if fila[4] == indiceTipo and fila[10] == 1:
+            nombre = fila[0] + " " + fila[1] + " " + fila[2]
+            sangre = tiposSangre[fila[4]]
+            html.write(f"<tr><td>{fila[3]}</td><td>{nombre}</td><td>{sangre}</td><td>{fila[9]}</td><td>{fila[8]}</td></tr>\n")
+    
+    html.write("</table>\n</body>\n</html>")
+    html.close()
+    messagebox.showinfo("Éxito", "Reporte creado satisfactoriamente.")
+
+def reporteQuienDonar():
+    ventanaReporteQuienDonar = tk.Toplevel()
+    ventanaReporteQuienDonar.title("¿A quién puede donar?")
+    ventanaReporteQuienDonar.geometry("400x500")
+
+    etiquetaTipo = tk.Label(ventanaReporteQuienDonar, text = "Seleccione el tipo de sangre: ")
+    etiquetaTipo.pack()
+
+    vTipo = tk.StringVar()
+    vTipo.set("O+")
+
+    listaTipo = tk.OptionMenu(ventanaReporteQuienDonar, vTipo, *tiposSangre)
+    listaTipo.pack()
+
+    botonGenerar = tk.Button(ventanaReporteQuienDonar, text = "Generar reporte", command = lambda: generarReporteQuienDonar(vTipo, ventanaReporteQuienDonar))
+    botonGenerar.pack()
+
+    botonRegresar = tk.Button(ventanaReporteQuienDonar, text="Regresar", command = ventanaReporteQuienDonar.destroy)
+    botonRegresar.pack()
+
 def reporteNoActivos():
     from datetime import datetime
     ahora = datetime.now()
@@ -376,6 +437,7 @@ def reporteNoActivos():
     html.write("</table>\n</body>\n</html>")
     html.close()
     messagebox.showinfo("Éxito", "Reporte creado satisfactoriamente.")
+
 
 def reportes():
     ventanaReportes = tk.Toplevel()
