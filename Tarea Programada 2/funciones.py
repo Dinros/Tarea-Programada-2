@@ -336,8 +336,6 @@ def insertarLugar():
     botonSalir = tk.Button(ventanaInsertarLugar, text="Salir", command=ventanaInsertarLugar.destroy)
     botonSalir.pack()
 
-
-
 def reporteListaCompleta():
     from datetime import datetime
     ahora = datetime.now()
@@ -360,7 +358,7 @@ def reporteListaCompleta():
         sexo = "Masculino" if fila[5] else "Femenino"
         html.write(f"<tr><td>{fila[3]}</td><td>{nombre}</td><td>{sangre}</td><td>{fecha}</td><td>{fila[7]}</td><td>{sexo}</td><td>{fila[9]}</td><td>{fila[8]}</td></tr>\n")
      
-    html.write("</table\n</body>\n</html>")
+    html.write("</table>\n</body>\n</html>")
     html.close()
     messagebox.showinfo("Éxito", "Reporte creado satisfactoriamente.")
 
@@ -392,26 +390,6 @@ def generarReporteQuienDonar(vTipo, ventana):
     html.close()
     messagebox.showinfo("Éxito", "Reporte creado satisfactoriamente.")
 
-def reporteQuienDonar():
-    ventanaReporteQuienDonar = tk.Toplevel()
-    ventanaReporteQuienDonar.title("¿A quién puede donar?")
-    ventanaReporteQuienDonar.geometry("400x500")
-
-    etiquetaTipo = tk.Label(ventanaReporteQuienDonar, text = "Seleccione el tipo de sangre: ")
-    etiquetaTipo.pack()
-
-    vTipo = tk.StringVar()
-    vTipo.set("O+")
-
-    listaTipo = tk.OptionMenu(ventanaReporteQuienDonar, vTipo, *tiposSangre)
-    listaTipo.pack()
-
-    botonGenerar = tk.Button(ventanaReporteQuienDonar, text = "Generar reporte", command = lambda: generarReporteQuienDonar(vTipo, ventanaReporteQuienDonar))
-    botonGenerar.pack()
-
-    botonRegresar = tk.Button(ventanaReporteQuienDonar, text="Regresar", command = ventanaReporteQuienDonar.destroy)
-    botonRegresar.pack()
-
 def reporteNoActivos():
     from datetime import datetime
     ahora = datetime.now()
@@ -438,6 +416,102 @@ def reporteNoActivos():
     html.close()
     messagebox.showinfo("Éxito", "Reporte creado satisfactoriamente.")
 
+def validarEdadInicial(event, campoEdadInicial, campoEdadFinal):
+    edadInicial = campoEdadInicial.get()
+    if  edadInicial.isdigit():
+        edad = int(edadInicial)
+        if 18 <= edad <= 65:
+            campoEdadFinal.config(state = "normal")
+        else:
+            campoEdadFinal.config(state = "disabled")
+
+   
+
+def generarReporteRangoEdad(campoEdadInicial, campoEdadFinal):
+    from datetime import datetime, date
+    ahora = datetime.now()
+    fechaHora = ahora.strftime("%d-%m-%y-%H-%M-%S")
+    nombreHTML = "reporteRangoEdad_" + fechaHora + ".html"
+    
+    edadInicial = int(campoEdadInicial.get())
+    edadFinal = campoEdadFinal.get()
+    
+    hoy = date.today()
+    
+    html = open(nombreHTML, "w", encoding="utf-8")
+    html.write("<!DOCTYPE html>\n<html>\n<body>\n")
+    html.write("<h1>Reporte por Rango de Edad</h1>\n")
+    html.write(f"<h2>{fechaHora}</h2>\n")
+    html.write("<table border='1'>\n")
+    html.write("<tr><th>Cédula</th><th>Nombre</th><th>Fecha Nac.</th><th>Teléfono</th><th>Correo</th></tr>\n")
+    
+    for fila in baseDatos:
+        if fila[10] == 1:  # solo activos
+            edad = hoy.year - fila[6][2]
+            cumpleEste = (hoy.month, hoy.day) < (fila[6][1], fila[6][0])
+            if cumpleEste:
+                edad -= 1
+            
+            if edadFinal == "":  # solo edad inicial
+                condicion = edad == edadInicial
+            else:
+                condicion = edadInicial <= edad <= int(edadFinal)
+            
+            if condicion:
+                nombre = fila[0] + " " + fila[1] + " " + fila[2]
+                fecha = f"{fila[6][0]}/{fila[6][1]}/{fila[6][2]}"
+                html.write(f"<tr><td>{fila[3]}</td><td>{nombre}</td><td>{fecha}</td><td>{fila[9]}</td><td>{fila[8]}</td></tr>\n")
+    
+    html.write("</table>\n</body>\n</html>")
+    html.close()
+    messagebox.showinfo("Éxito", "Reporte creado satisfactoriamente.")
+
+def reporteRangoEdad():
+    ventanaRangoEdad = tk.Toplevel()
+    ventanaRangoEdad.title("Por rango de edad")
+    ventanaRangoEdad.geometry("400x300")
+
+    etiquetaInicial = tk.Label(ventanaRangoEdad, text = "Edad inicial:")
+    etiquetaInicial.pack()
+
+    campoEdadInicial = tk.Entry(ventanaRangoEdad)
+    campoEdadInicial.pack()
+
+    etiquetaFinal = tk.Label(ventanaRangoEdad, text = "Edad final:")
+    etiquetaFinal.pack()
+
+    campoEdadFinal = tk.Entry(ventanaRangoEdad, state = "disabled")
+    campoEdadFinal.pack()
+
+    campoEdadInicial.bind("<FocusOut>", lambda event: validarEdadInicial(event, campoEdadInicial, campoEdadFinal))
+
+    botonGenerar = tk.Button(ventanaRangoEdad, text = "Generar reporte",
+        command=lambda: generarReporteRangoEdad(campoEdadInicial, campoEdadFinal))
+    botonGenerar.pack()
+
+    botonRegresar = tk.Button(ventanaRangoEdad, text =" Regresar",
+        command=ventanaRangoEdad.destroy)
+    botonRegresar.pack()
+
+def reporteQuienDonar():
+    ventanaReporteQuienDonar = tk.Toplevel()
+    ventanaReporteQuienDonar.title("¿A quién puede donar?")
+    ventanaReporteQuienDonar.geometry("400x500")
+
+    etiquetaTipo = tk.Label(ventanaReporteQuienDonar, text = "Seleccione el tipo de sangre: ")
+    etiquetaTipo.pack()
+
+    vTipo = tk.StringVar()
+    vTipo.set("O+")
+
+    listaTipo = tk.OptionMenu(ventanaReporteQuienDonar, vTipo, *tiposSangre)
+    listaTipo.pack()
+
+    botonGenerar = tk.Button(ventanaReporteQuienDonar, text = "Generar reporte", command = lambda: generarReporteQuienDonar(vTipo, ventanaReporteQuienDonar))
+    botonGenerar.pack()
+
+    botonRegresar = tk.Button(ventanaReporteQuienDonar, text="Regresar", command = ventanaReporteQuienDonar.destroy)
+    botonRegresar.pack()
 
 def reportes():
     ventanaReportes = tk.Toplevel()
