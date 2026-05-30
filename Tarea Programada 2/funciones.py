@@ -68,11 +68,16 @@ if os.path.exists("baseDatos.txt"):
 def pesoAux(peso):
     try:
         pesoFloat = float(peso)
-        if pesoFloat > 50 and pesoFloat < 120:
-            return True
-        return False
+        if pesoFloat <= 50:
+            messagebox.showerror("Peso", "Usted debe pesar más de 50 kgms para poder ser donador.")
+        elif pesoFloat >= 120:
+            messagebox.showerror("Peso", "Dado su sobre peso, no es posible donar sangre. ")
+        else:
+            messagebox.showerror("Peso", "Usted posee un peso adecuado, correcto para ser donador de sangre. ")
+    
     except ValueError:
-        return False
+        messagebox.showerror("Error", "El peso debe ser un número.")
+        return 
 
 def fechaAux(fechaTupla):
     hoy = date.today()
@@ -116,11 +121,10 @@ def registrar(campoCedula, campoNombre, campoFecha, campoPeso, campoTel, campoCo
     if not re.match(r'^[246789]\d{3}-\d{4}$', tel):
         messagebox.showerror("Teléfono inválido", "siga los parámetros(####-####).")
         return
-    if not re.match(r'^[a-zA-Z0-9.]+@[a-zA-Z]+\.[a-zA-Z]+(\.[a-zA-Z]+)?$', correo):
-        messagebox.showerror("Correo inválido", "siga los parámetros")
+    if not re.match(r'^[a-zA-Z0-9.]+@(costarricense\.cr|racsa\.go\.cr|ccss\.sa\.cr|gmail\.com)$', correo):
+        messagebox.showerror("Correo inválido", "Solo perimitimos los correo de tipo: \n-costarricense.cr\n-racsa.go.cr\n-ccss.sa.cr\n-gmail.com")
         return
     if not pesoAux(peso):
-        messagebox.showerror("Usted no puede donar sangre", "debe pesar entre 50 y 120 kg.")
         return
     
     partesNombre = campoNombre.get().split()
@@ -135,13 +139,15 @@ def registrar(campoCedula, campoNombre, campoFecha, campoPeso, campoTel, campoCo
         return
     
     if not fechaAux(fechaTupla):
-        messagebox.showerror("Edad", "Debido a que es menor de edad usted no puede donar.")
+        messagebox.showerror("Edad", "Dado su fecha de nacimiento usted aún no puede ser donador. ")
         return
+    
+    messagebox.showinfo("Edad", "Dado su fecha de nacimiento usted ya puede ser donador. ")
     
     provincia = cedula[0]
     lugares = lugaresDonacion[provincia]
     lugaresTexto = "\n".join(lugares)
-    messagebox.showinfo("Lugar de donación", f"Debido a que nació en {nombresProvincia[provincia]}, podría donar en:\n{lugaresTexto}")
+    messagebox.showinfo("Lugar de donación", f"Dado que usted nació en la provincia de: {nombresProvincia[provincia]}, usted podría donar en:\n{lugaresTexto}")
 
         
     filaDonador = [partesNombre[0], partesNombre[1], partesNombre[2], cedula, indiceSangre, sexo, fechaTupla, float(peso), correo, tel, 1, 0]
@@ -229,10 +235,10 @@ def insertarDonador():
     command=lambda: registrar(campoCedula, campoNombre, campoFecha, campoPeso, campoTel, campoCorreo, vTipoSangre, vSexo, ventanaInsertarDonador))
     botonRegistrar.pack()
 
-    botonLimpiar = tk.Button(ventanaInsertarDonador, text="Limpiar", command=lambda: limpiar(campoCedula, campoNombre, campoFecha, campoPeso, campoTel, campoCorreo, vTipoSangre, vSexo))
+    botonLimpiar = tk.Button(ventanaInsertarDonador, text="Limpiar", command = lambda: limpiar(campoCedula, campoNombre, campoFecha, campoPeso, campoTel, campoCorreo, vTipoSangre, vSexo))
     botonLimpiar.pack()
 
-    botonRegresar = tk.Button(ventanaInsertarDonador, text="Regresar", command=ventanaInsertarDonador.destroy)
+    botonRegresar = tk.Button(ventanaInsertarDonador, text="Regresar", command = ventanaInsertarDonador.destroy)
     botonRegresar.pack()
 
 
@@ -279,7 +285,7 @@ def cancelar():
 def eliminarDonador():
     ventanaEliminar = tk.Toplevel()
     ventanaEliminar.title("Eliminar Donador")
-    ventanaEliminar.geometry("400x500")
+    ventanaEliminar.geometry("700x300")
 
     etiquetaCedula = tk.Label(ventanaEliminar, text = "Cédula:")
     etiquetaCedula.pack()
