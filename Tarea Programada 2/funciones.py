@@ -241,10 +241,81 @@ def insertarDonador():
     botonRegresar = tk.Button(ventanaInsertarDonador, text="Regresar", command = ventanaInsertarDonador.destroy)
     botonRegresar.pack()
 
-
 def generarDonadores():
-    print()
-
+    ventanaGenerar = tk.Toplevel()
+    ventanaGenerar.title("Generar Donadores")
+    ventanaGenerar.geometry("350x150")
+ 
+    etiquetaCantidad = tk.Label(ventanaGenerar, text="Cantidad de donadores a generar:")
+    etiquetaCantidad.pack()
+ 
+    campoCantidad = tk.Entry(ventanaGenerar)
+    campoCantidad.pack()
+ 
+    def generarAux():
+        cantidad = campoCantidad.get()
+        try:
+            cantidad = int(cantidad)
+        except ValueError:
+            messagebox.showerror("Cantidad inválida", "Debe ingresar un número entero mayor a 0.")
+            return
+        if cantidad <= 0:
+            messagebox.showerror("Cantidad inválida", "El dato ingresado debe ser mayor a 0.")
+            return
+ 
+        nombresAleatorios = ["Carlos", "María", "Luis", "Ana", "Jorge", "Laura", "Pedro", "Sofía",
+                             "Andrés", "Valeria", "Diego", "Camila", "Roberto", "Isabella", "Miguel"]
+        apellidosAleatorios = ["González", "Rodríguez", "Jiménez", "Mora", "Castro", "Vargas",
+                               "Solano", "Rojas", "Chaves", "Alvarado", "Ramírez", "Badilla", "Núñez"]
+ 
+        generados = 0
+        for _ in range(cantidad):
+            nombre = random.choice(nombresAleatorios)
+            apellido1 = random.choice(apellidosAleatorios)
+            apellido2 = random.choice(apellidosAleatorios)
+            provincia = random.randint(1, 7)
+            tomo = random.randint(1000, 9999)
+            asiento = random.randint(1000, 9999)
+            cedula = f"{provincia}-{tomo:04d}-{asiento:04d}"
+            indiceSangre = random.randint(0, 7)
+            sexo = random.choice([True, False])
+            anio = random.randint(1950, 2010)
+            mes = random.randint(1, 12)
+            dia = random.randint(1, 28)
+            fechaTupla = (dia, mes, anio)
+            peso = round(random.uniform(40, 130), 1)
+            correo = f"{nombre.lower()}{random.randint(1,99)}@gmail.com"
+            tel = f"{random.choice([2,4,6,7,8,9])}{random.randint(100,999)}-{random.randint(1000,9999)}"
+ 
+            if peso <= 50:
+                estado = 0
+                justificacion = 3
+            elif peso >= 120:
+                estado = 0
+                justificacion = 3
+            else:
+                estado = 1
+                justificacion = 0
+ 
+            edad = obtenerEdad(fechaTupla)
+            if edad < 18:
+                estado = 0
+                justificacion = 3
+ 
+            filaDonador = [nombre, apellido1, apellido2, cedula, indiceSangre, sexo,
+                           fechaTupla, peso, correo, tel, estado, justificacion]
+            baseDatos.append(filaDonador)
+            generados += 1
+ 
+        guardarBaseDatos()
+        messagebox.showinfo("Generación completada", f"Se generaron {generados} donadores correctamente.")
+        ventanaGenerar.destroy()
+ 
+    botonGenerar = tk.Button(ventanaGenerar, text="Generar", command=generarAux)
+    botonGenerar.pack()
+ 
+    botonRegresar = tk.Button(ventanaGenerar, text="Regresar", command=ventanaGenerar.destroy)
+    botonRegresar.pack()
 def actualizarDatos():
     print()
 
