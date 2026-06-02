@@ -1,4 +1,4 @@
-#Elaborado por: Abigail Coto
+#Elaborado por: Abigail Coto y Felipe Duran
 #Fecha de creacion: 01/06/2026
 #Ultima modificacion: 01/06/2026
 #Version: 1.0
