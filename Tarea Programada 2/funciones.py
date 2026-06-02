@@ -794,7 +794,93 @@ def insertarLugar():
     #Botón para cerrar la ventana
     botonSalir = tk.Button(ventanaInsertarLugar, text="Salir",command=ventanaInsertarLugar.destroy)
     botonSalir.pack()
+def reporteDonantesProvinciaHTML(vProvincia):
+    """
+    Funcionamiento:
+    Genera un reporte HTML con los donadores activos
+    de la provincia seleccionada, ordenados por
+    nombre completo.
+    Entradas:
+    - vProvincia(StringVar): Provincia seleccionada.
+    Salidas:
+    - Genera un archivo HTML.
+    - Muestra un mensaje de confirmación.
+    """
+    #Obtiene la fecha y hora actuales
+    ahora = datetime.now()
+    #Genera una cadena con la fecha y hora
+    fechaHora = ahora.strftime("%d-%m-%y-%H-%M-%S")
+    #Crea el nombre del archivo HTML
+    nombreHTML = "reporteDonantesProvinca_" + fechaHora + ".html"
+    #Obtiene el nombre de la provincia seleccionada
+    nombreProv = vProvincia.get()
+    #Busca el código de la provincia seleccionada
+    codigoProv = ""
+    for cod, nom in nombresProvincia.items():
+        if nom == nombreProv:
+            codigoProv = cod
+            break
+    #Filtra donadores activos de esa provincia
+    donadores = [d for d in baseDatos if d[10] == 1 and d[3][0] == codigoProv]
+    #Ordena por nombre completo
+    donadores.sort(key=lambda d: d[0] + " " + d[1] + " " + d[2])
+    #Abre el archivo HTML para escritura
+    html = open(nombreHTML, "w", encoding="utf-8")
+    html.write("<!DOCTYPE html>\n<html>\n<body>\n")
+    html.write(f"<h1>Donantes por Provincia: {nombreProv}</h1>\n")
+    html.write(f"<h2>{fechaHora}</h2>\n")
+    html.write("<table border='1'>\n")
+    html.write("<tr><th>Cédula</th><th>Nombre</th><th>Fecha Nac.</th><th>Teléfono</th><th>Correo</th></tr>\n")
+    #Recorre los donadores filtrados
+    for fila in donadores:
+        #Construye el nombre completo
+        nombre = fila[0] + " " + fila[1] + " " + fila[2]
+        #Convierte la fecha a formato texto
+        fecha = f"{fila[6][0]}/{fila[6][1]}/{fila[6][2]}"
+        #Agrega la fila al reporte
+        html.write(f"<tr><td>{fila[3]}</td><td>{nombre}</td><td>{fecha}</td><td>{fila[9]}</td><td>{fila[8]}</td></tr>\n")
+    html.write("</table>\n</body>\n</html>")
+    #Cierra el archivo
+    html.close()
+    #Muestra mensaje de éxito
+    messagebox.showinfo("Éxito", "Reporte creado satisfactoriamente.")
 
+def reporteDonantesProvinicia():
+    """
+    Funcionamiento:
+    Crea una ventana que permite seleccionar una
+    provincia para generar el reporte de donantes
+    activos de esa provincia.
+    Entradas:
+    Esta función no recibe entradas.
+    Salidas:
+    - Muestra la ventana de selección de provincia.
+    - Ejecuta la generación del reporte.
+    """
+    #Crea la ventana del reporte
+    ventanaReporteProvincia = tk.Toplevel()
+    #Asigna el título de la ventana
+    ventanaReporteProvincia.title("Donantes por Provincia")
+    #Define el tamaño de la ventana
+    ventanaReporteProvincia.geometry("400x200")
+    #Etiqueta de instrucción
+    etiquetaProvincia = tk.Label(ventanaReporteProvincia, text="Seleccione la provincia:")
+    etiquetaProvincia.pack()
+    #Variable para la provincia seleccionada
+    vProvincia = tk.StringVar()
+    vProvincia.set("San José")
+    #Opciones de provincia sin Naturalizado
+    opcionesProvincias = [nombresProvincia[k] for k in sorted(nombresProvincia.keys()) if k != "8"]
+    #Lista desplegable de provincias
+    listaProvincia = tk.OptionMenu(ventanaReporteProvincia, vProvincia, *opcionesProvincias)
+    listaProvincia.pack()
+    #Botón para generar el reporte
+    botonGenerar = tk.Button(ventanaReporteProvincia, text="Generar reporte", command=lambda: reporteDonantesProvinciaHTML(vProvincia))
+    botonGenerar.pack()
+    #Botón para regresar
+    botonRegresar = tk.Button(ventanaReporteProvincia, text="Regresar", command=ventanaReporteProvincia.destroy)
+    botonRegresar.pack()
+    
 def reporteListaCompleta():
     """
     Funcionamiento:
@@ -842,6 +928,152 @@ def reporteListaCompleta():
         sexo = "Masculino" if fila[5] else "Femenino"
         #Agrega la fila al reporte
         html.write(f"<tr><td>{fila[3]}</td><td>{nombre}</td><td>{sangre}</td><td>{fecha}</td><td>{fila[7]}</td><td>{sexo}</td><td>{fila[9]}</td><td>{fila[8]}</td></tr>\n")
+    html.write("</table>\n</body>\n</html>")
+    #Cierra el archivo
+    html.close()
+    #Muestra mensaje de éxito
+    messagebox.showinfo("Éxito", "Reporte creado satisfactoriamente.")
+
+def generarReporteTipoSangre(vTipo, vProvincia):
+    """
+    Funcionamiento:
+    Genera un reporte HTML con los donadores activos
+    de un tipo de sangre y provincia específicos.
+    Entradas:
+    - vTipo(StringVar): Tipo de sangre seleccionado.
+    - vProvincia(StringVar): Provincia seleccionada.
+    Salidas:
+    - Genera un archivo HTML.
+    - Muestra un mensaje de confirmación.
+    """
+    #Obtiene la fecha y hora actuales
+    ahora = datetime.now()
+    #Genera una cadena con la fecha y hora
+    fechaHora = ahora.strftime("%d-%m-%y-%H-%M-%S")
+    #Crea el nombre del archivo HTML
+    nombreHTML = "reporteTipoSangre_" + fechaHora + ".html"
+    #Obtiene el tipo de sangre y la provincia seleccionados
+    tipoSeleccionado = vTipo.get()
+    nombreProv = vProvincia.get()
+    #Obtiene el índice del tipo de sangre
+    indiceTipo = tiposSangre.index(tipoSeleccionado)
+    #Busca el código de la provincia
+    codigoProv = ""
+    for cod, nom in nombresProvincia.items():
+        if nom == nombreProv:
+            codigoProv = cod
+            break
+    #Abre el archivo HTML para escritura
+    html = open(nombreHTML, "w", encoding="utf-8")
+    html.write("<!DOCTYPE html>\n<html>\n<body>\n")
+    html.write(f"<h1>Donantes de tipo {tipoSeleccionado} en {nombreProv}</h1>\n")
+    html.write(f"<h2>{fechaHora}</h2>\n")
+    html.write("<table border='1'>\n")
+    html.write("<tr><th>Cédula</th><th>Nombre</th><th>Fecha Nac.</th><th>Teléfono</th><th>Correo</th></tr>\n")
+    #Recorre la base de datos filtrando por tipo y provincia
+    for fila in baseDatos:
+        #Verifica tipo de sangre, provincia y estado activo
+        if fila[4] == indiceTipo and fila[10] == 1 and fila[3][0] == codigoProv:
+            #Construye el nombre completo
+            nombre = fila[0] + " " + fila[1] + " " + fila[2]
+            #Convierte la fecha a formato texto
+            fecha = f"{fila[6][0]}/{fila[6][1]}/{fila[6][2]}"
+            #Agrega la fila al reporte
+            html.write(f"<tr><td>{fila[3]}</td><td>{nombre}</td><td>{fecha}</td><td>{fila[9]}</td><td>{fila[8]}</td></tr>\n")
+    html.write("</table>\n</body>\n</html>")
+    #Cierra el archivo
+    html.close()
+    #Muestra mensaje de éxito
+    messagebox.showinfo("Éxito", "Reporte creado satisfactoriamente.")
+
+def reporteTipoSangre():
+    """
+    Funcionamiento:
+    Crea una ventana que permite seleccionar un
+    tipo de sangre y una provincia para generar
+    un reporte de donantes activos con ese tipo.
+    Entradas:
+    Esta función no recibe entradas.
+    Salidas:
+    - Muestra la ventana de selección.
+    - Ejecuta la generación del reporte.
+    """
+    #Crea la ventana del reporte
+    ventanaReporteTipo = tk.Toplevel()
+    #Asigna el título de la ventana
+    ventanaReporteTipo.title("Por tipo de sangre")
+    #Define el tamaño de la ventana
+    ventanaReporteTipo.geometry("400x250")
+    #Etiqueta para el tipo de sangre
+    etiquetaTipo = tk.Label(ventanaReporteTipo, text="Seleccione el tipo de sangre:")
+    etiquetaTipo.pack()
+    #Variable para el tipo de sangre
+    vTipo = tk.StringVar()
+    vTipo.set(tiposSangre[0])
+    #Lista desplegable de tipos sanguíneos leída de la tupla global
+    listaTipo = tk.OptionMenu(ventanaReporteTipo, vTipo, *tiposSangre)
+    listaTipo.pack()
+    #Etiqueta para la provincia
+    etiquetaProvincia = tk.Label(ventanaReporteTipo, text="Seleccione la provincia:")
+    etiquetaProvincia.pack()
+    #Variable para la provincia
+    vProvincia = tk.StringVar()
+    vProvincia.set("San José")
+    #Opciones de provincia sin Naturalizado
+    opcionesProvincias = [nombresProvincia[k] for k in sorted(nombresProvincia.keys()) if k != "8"]
+    #Lista desplegable de provincias
+    listaProvincia = tk.OptionMenu(ventanaReporteTipo, vProvincia, *opcionesProvincias)
+    listaProvincia.pack()
+    #Botón para generar el reporte
+    botonGenerar = tk.Button(ventanaReporteTipo, text="Generar reporte", command=lambda: generarReporteTipoSangre(vTipo, vProvincia))
+    botonGenerar.pack()
+    #Botón para regresar
+    botonRegresar = tk.Button(ventanaReporteTipo, text="Regresar", command=ventanaReporteTipo.destroy)
+    botonRegresar.pack()
+
+def reporteMujeresONeg():
+    """
+    Funcionamiento:
+    Genera un reporte HTML con las mujeres donantes
+    activas de tipo O-, menores de 45 años, ordenadas
+    por edad.
+    Entradas:
+    Esta función no recibe entradas.
+    Salidas:
+    - Genera un archivo HTML.
+    - Muestra un mensaje de confirmación.
+    """
+    #Obtiene la fecha y hora actuales
+    ahora = datetime.now()
+    #Genera una cadena con la fecha y hora
+    fechaHora = ahora.strftime("%d-%m-%y-%H-%M-%S")
+    #Crea el nombre del archivo HTML
+    nombreHTML = "reporteMujeresONeg_" + fechaHora + ".html"
+    #Obtiene el índice de O-
+    indiceONeg = tiposSangre.index("O-")
+    #Filtra mujeres activas con O- menores de 45 años
+    donadores = [d for d in baseDatos
+                 if d[10] == 1
+                 and d[5] == False
+                 and d[4] == indiceONeg
+                 and obtenerEdad(d[6]) < 45]
+    #Ordena por edad
+    donadores.sort(key=lambda d: obtenerEdad(d[6]))
+    #Abre el archivo HTML para escritura
+    html = open(nombreHTML, "w", encoding="utf-8")
+    html.write("<!DOCTYPE html>\n<html>\n<body>\n")
+    html.write("<h1>Mujeres Donantes O-</h1>\n")
+    html.write(f"<h2>{fechaHora}</h2>\n")
+    html.write("<table border='1'>\n")
+    html.write("<tr><th>Cédula</th><th>Nombre</th><th>Fecha Nac.</th><th>Teléfono</th><th>Correo</th></tr>\n")
+    #Recorre las donantes filtradas
+    for fila in donadores:
+        #Construye el nombre completo
+        nombre = fila[0] + " " + fila[1] + " " + fila[2]
+        #Convierte la fecha a formato texto
+        fecha = f"{fila[6][0]}/{fila[6][1]}/{fila[6][2]}"
+        #Agrega la fila al reporte
+        html.write(f"<tr><td>{fila[3]}</td><td>{nombre}</td><td>{fecha}</td><td>{fila[9]}</td><td>{fila[8]}</td></tr>\n")
     html.write("</table>\n</body>\n</html>")
     #Cierra el archivo
     html.close()
@@ -902,6 +1134,92 @@ def generarReporteQuienDonar(vTipo, ventana):
     #Muestra mensaje de éxito
     messagebox.showinfo("Éxito", "Reporte creado satisfactoriamente.")
 
+def generarReporteRecibirDe(vTipo):
+    """
+    Funcionamiento:
+    Genera un reporte HTML que muestra los
+    donadores activos de un tipo sanguíneo
+    específico y los tipos de sangre de los
+    que pueden recibir, agrupados por provincia
+    descendentemente.
+    Entradas:
+    - vTipo(StringVar): Tipo de sangre seleccionado.
+    Salidas:
+    - Genera un archivo HTML.
+    - Muestra un mensaje de confirmación.
+    """
+    #Obtiene la fecha y hora actuales
+    ahora = datetime.now()
+    #Genera una cadena con la fecha y hora
+    fechaHora = ahora.strftime("%d-%m-%y-%H-%M-%S")
+    #Crea el nombre del archivo HTML
+    nombreHTML = "reporteRecibirDe_" + fechaHora + ".html"
+    #Obtiene el tipo sanguíneo seleccionado
+    tipoSeleccionado = vTipo.get()
+    #Obtiene la posición del tipo sanguíneo
+    indiceTipo = tiposSangre.index(tipoSeleccionado)
+    #Obtiene los tipos de sangre de los que puede recibir
+    puedeRecibir = compatibilidadRecibir[tipoSeleccionado]
+    #Filtra donadores activos con ese tipo y ordena por provincia descendente
+    donadores = [d for d in baseDatos if d[4] == indiceTipo and d[10] == 1]
+    donadores.sort(key=lambda d: d[3][0], reverse=True)
+    #Abre el archivo HTML para escritura
+    html = open(nombreHTML, "w", encoding="utf-8")
+    html.write("<!DOCTYPE html>\n<html>\n<body>\n")
+    html.write("<h1>¿De quién puede recibir?</h1>\n")
+    html.write(f"<h2>{fechaHora}</h2>\n")
+    html.write(f"<p>Tipo de sangre: {tipoSeleccionado} puede recibir de: {', '.join(puedeRecibir)}</p>\n")
+    html.write("<table border='1'>\n")
+    html.write("<tr><th>Cédula</th><th>Nombre</th><th>Tipo Sangre</th><th>Teléfono</th><th>Correo</th></tr>\n")
+    #Recorre los donadores filtrados
+    for fila in donadores:
+        #Construye el nombre completo
+        nombre = fila[0] + " " + fila[1] + " " + fila[2]
+        #Obtiene el tipo de sangre
+        sangre = tiposSangre[fila[4]]
+        #Agrega la fila al reporte
+        html.write(f"<tr><td>{fila[3]}</td><td>{nombre}</td><td>{sangre}</td><td>{fila[9]}</td><td>{fila[8]}</td></tr>\n")
+    html.write("</table>\n</body>\n</html>")
+    #Cierra el archivo
+    html.close()
+    #Muestra mensaje de éxito
+    messagebox.showinfo("Éxito", "Reporte creado satisfactoriamente.")
+ 
+def reporteRecibirDe():
+    """
+    Funcionamiento:
+    Crea una ventana que permite seleccionar
+    un tipo de sangre para generar un reporte
+    de compatibilidad de recepción.
+    Entradas:
+    Esta función no recibe entradas.
+    Salidas:
+    - Muestra una ventana de selección.
+    - Ejecuta la generación del reporte.
+    """
+    #Crea una nueva ventana
+    ventanaReporteRecibirDe = tk.Toplevel()
+    #Asigna el título de la ventana
+    ventanaReporteRecibirDe.title("¿De quién puede recibir?")
+    #Define el tamaño de la ventana
+    ventanaReporteRecibirDe.geometry("400x200")
+    #Etiqueta para seleccionar el tipo de sangre
+    etiquetaTipo = tk.Label(ventanaReporteRecibirDe, text = "Seleccione el tipo de sangre: ")
+    etiquetaTipo.pack()
+    #Variable que almacena el tipo de sangre seleccionado
+    vTipo = tk.StringVar()
+    #Tipo de sangre por defecto
+    vTipo.set("O+")
+    #Lista desplegable de tipos sanguíneos leída desde la tupla global
+    listaTipo = tk.OptionMenu(ventanaReporteRecibirDe, vTipo, *tiposSangre)
+    listaTipo.pack()
+    #Botón para generar el reporte
+    botonGenerar = tk.Button(ventanaReporteRecibirDe, text = "Generar reporte", command = lambda: generarReporteRecibirDe(vTipo))
+    botonGenerar.pack()
+    #Botón para regresar
+    botonRegresar = tk.Button(ventanaReporteRecibirDe, text="Regresar", command = ventanaReporteRecibirDe.destroy)
+    botonRegresar.pack()
+
 def reporteNoActivos():
     """
     Funcionamiento:
@@ -951,6 +1269,53 @@ def reporteNoActivos():
             justificacion = razones[fila[11]]
             #Agrega la fila al reporte
             html.write(f"<tr><td>{justificacion}</td><td>{fila[3]}</td><td>{nombre}</td><td>{sangre}</td><td>{fecha}</td><td>{fila[7]}</td><td>{sexo}</td><td>{fila[9]}</td><td>{fila[8]}</td></tr>\n")
+    html.write("</table>\n</body>\n</html>")
+    #Cierra el archivo
+    html.close()
+    #Muestra mensaje de éxito
+    messagebox.showinfo("Éxito", "Reporte creado satisfactoriamente.")
+
+def reporteLugaresDonacion():
+    """
+    Funcionamiento:
+    Genera un reporte HTML con las provincias
+    ordenadas ascendentemente según el Registro
+    Civil, mostrando la cantidad de donadores
+    registrados y los recintos de donación.
+    Entradas:
+    Esta función no recibe entradas.
+    Salidas:
+    - Genera un archivo HTML.
+    - Muestra un mensaje de confirmación.
+    """
+    #Obtiene la fecha y hora actuales
+    ahora = datetime.now()
+    #Genera una cadena con la fecha y hora
+    fechaHora = ahora.strftime("%d-%m-%y-%H-%M-%S")
+    #Crea el nombre del archivo HTML
+    nombreHTML = "reporteLugaresDonacion_" + fechaHora + ".html"
+    #Abre el archivo HTML para escritura
+    html = open(nombreHTML, "w", encoding="utf-8")
+    html.write("<!DOCTYPE html>\n<html>\n<body>\n")
+    html.write("<h1>Lugares de Donación por Provincia</h1>\n")
+    html.write(f"<h2>{fechaHora}</h2>\n")
+    html.write("<table border='1'>\n")
+    html.write("<tr><th>Provincia</th><th>Cantidad de donadores registrados (activos e inactivos)</th><th>Recintos posibles de recaudación</th></tr>\n")
+    #Recorre las provincias ordenadas ascendentemente según el TSE
+    for codigo in sorted(nombresProvincia.keys()):
+        #Excluye el código de naturalizados del listado
+        if codigo == "8":
+            continue
+        #Obtiene el nombre de la provincia
+        nombreProv = nombresProvincia[codigo]
+        #Cuenta todos los donadores de esa provincia
+        cantidad = sum(1 for d in baseDatos if d[3][0] == codigo)
+        #Obtiene los lugares de donación de esa provincia
+        lugaresLista = lugaresDonacion.get(codigo, [])
+        #Convierte la lista de lugares a texto separado por saltos de línea HTML
+        lugaresTexto = "<br>".join(lugaresLista) if lugaresLista else "Sin recintos registrados."
+        #Agrega la fila al reporte
+        html.write(f"<tr><td>{nombreProv}</td><td>{cantidad}</td><td>{lugaresTexto}</td></tr>\n")
     html.write("</table>\n</body>\n</html>")
     #Cierra el archivo
     html.close()
