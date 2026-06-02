@@ -375,10 +375,219 @@ def insertarDonador():
     botonRegresar.pack()
 
 def generarDonadores():
-    print()
-
+    ventanaGenerar = tk.Toplevel()
+    ventanaGenerar.title("Generar Donadores")
+    ventanaGenerar.geometry("350x150")
+ 
+    etiquetaCantidad = tk.Label(ventanaGenerar, text="Cantidad de donadores a generar:")
+    etiquetaCantidad.pack()
+ 
+    campoCantidad = tk.Entry(ventanaGenerar)
+    campoCantidad.pack()
+ 
+    def generarAux():
+        cantidad = campoCantidad.get()
+        try:
+            cantidad = int(cantidad)
+        except ValueError:
+            messagebox.showerror("Cantidad inválida", "Debe ingresar un número entero mayor a 0.")
+            return
+        if cantidad <= 0:
+            messagebox.showerror("Cantidad inválida", "El dato ingresado debe ser mayor a 0.")
+            return
+ 
+        nombresAleatorios = ["Carlos", "María", "Luis", "Ana", "Jorge", "Laura", "Pedro", "Sofía",
+                             "Andrés", "Valeria", "Diego", "Camila", "Roberto", "Isabella", "Miguel"]
+        apellidosAleatorios = ["González", "Rodríguez", "Jiménez", "Mora", "Castro", "Vargas",
+                               "Solano", "Rojas", "Chaves", "Alvarado", "Ramírez", "Badilla", "Núñez"]
+ 
+        generados = 0
+        for _ in range(cantidad):
+            nombre = random.choice(nombresAleatorios)
+            apellido1 = random.choice(apellidosAleatorios)
+            apellido2 = random.choice(apellidosAleatorios)
+            provincia = random.randint(1, 7)
+            tomo = random.randint(1000, 9999)
+            asiento = random.randint(1000, 9999)
+            cedula = f"{provincia}-{tomo:04d}-{asiento:04d}"
+            indiceSangre = random.randint(0, 7)
+            sexo = random.choice([True, False])
+            anio = random.randint(1950, 2010)
+            mes = random.randint(1, 12)
+            dia = random.randint(1, 28)
+            fechaTupla = (dia, mes, anio)
+            peso = round(random.uniform(40, 130), 1)
+            correo = f"{nombre.lower()}{random.randint(1,99)}@gmail.com"
+            tel = f"{random.choice([2,4,6,7,8,9])}{random.randint(100,999)}-{random.randint(1000,9999)}"
+ 
+            if peso <= 50:
+                estado = 0
+                justificacion = 3
+            elif peso >= 120:
+                estado = 0
+                justificacion = 3
+            else:
+                estado = 1
+                justificacion = 0
+ 
+            edad = obtenerEdad(fechaTupla)
+            if edad < 18:
+                estado = 0
+                justificacion = 3
+ 
+            filaDonador = [nombre, apellido1, apellido2, cedula, indiceSangre, sexo,
+                           fechaTupla, peso, correo, tel, estado, justificacion]
+            baseDatos.append(filaDonador)
+            generados += 1
+ 
+        guardarBaseDatos()
+        messagebox.showinfo("Generación completada", f"Se generaron {generados} donadores correctamente.")
+        ventanaGenerar.destroy()
+ 
+    botonGenerar = tk.Button(ventanaGenerar, text="Generar", command=generarAux)
+    botonGenerar.pack()
+ 
+    botonRegresar = tk.Button(ventanaGenerar, text="Regresar", command=ventanaGenerar.destroy)
+    botonRegresar.pack()
 def actualizarDatos():
-    print()
+    ventanaBuscar = tk.Toplevel()
+    ventanaBuscar.title("Actualizar Datos del Donador")
+    ventanaBuscar.geometry("350x120")
+ 
+    etiquetaCedula = tk.Label(ventanaBuscar, text="Ingrese el número de cédula:")
+    etiquetaCedula.pack()
+ 
+    campoCedula = tk.Entry(ventanaBuscar)
+    campoCedula.pack()
+ 
+    def buscar():
+        cedula = campoCedula.get()
+        indiceDonador = -1
+        for i, donador in enumerate(baseDatos):
+            if donador[3] == cedula:
+                indiceDonador = i
+                break
+ 
+        if indiceDonador == -1:
+            messagebox.showinfo("No encontrado",
+                f"La persona con el número de cédula: {cedula} no está registrado en la base de datos del Banco de Sangre aún.")
+            return
+ 
+        ventanaBuscar.destroy()
+        donador = baseDatos[indiceDonador]
+        ventanaActualizar = tk.Toplevel()
+        ventanaActualizar.title("Actualizar Datos del Donador")
+        ventanaActualizar.geometry("400x520")
+ 
+        etiquetaCedulaRO = tk.Label(ventanaActualizar, text="Cédula (solo lectura):")
+        etiquetaCedulaRO.pack()
+        campoCedulaRO = tk.Entry(ventanaActualizar, state="readonly")
+        campoCedulaRO.pack()
+        campoCedulaRO.config(state="normal")
+        campoCedulaRO.insert(0, donador[3])
+        campoCedulaRO.config(state="readonly")
+ 
+        etiquetaNombre = tk.Label(ventanaActualizar, text="Nombre completo:")
+        etiquetaNombre.pack()
+        campoNombre = tk.Entry(ventanaActualizar)
+        campoNombre.pack()
+        campoNombre.insert(0, f"{donador[0]} {donador[1]} {donador[2]}")
+ 
+        etiquetaFecha = tk.Label(ventanaActualizar, text="Fecha de Nacimiento (DD/MM/AAAA):")
+        etiquetaFecha.pack()
+        campoFecha = tk.Entry(ventanaActualizar)
+        campoFecha.pack()
+        dd, mm, aaaa = donador[6]
+        campoFecha.insert(0, f"{dd:02d}/{mm:02d}/{aaaa}")
+ 
+        vTipoSangre = tk.StringVar()
+        vTipoSangre.set(tiposSangre[donador[4]])
+        listaTipoSangre = tk.OptionMenu(ventanaActualizar, vTipoSangre, *tiposSangre)
+        listaTipoSangre.pack()
+ 
+        vSexo = tk.BooleanVar()
+        vSexo.set(donador[5])
+        radioMasculino = tk.Radiobutton(ventanaActualizar, text="Masculino", variable=vSexo, value=True)
+        radioMasculino.pack()
+        radioFemenino = tk.Radiobutton(ventanaActualizar, text="Femenino", variable=vSexo, value=False)
+        radioFemenino.pack()
+ 
+        etiquetaPeso = tk.Label(ventanaActualizar, text="Peso (kg):")
+        etiquetaPeso.pack()
+        campoPeso = tk.Entry(ventanaActualizar)
+        campoPeso.pack()
+        campoPeso.insert(0, str(donador[7]))
+ 
+        etiquetaTel = tk.Label(ventanaActualizar, text="Teléfono:")
+        etiquetaTel.pack()
+        campoTel = tk.Entry(ventanaActualizar)
+        campoTel.pack()
+        campoTel.insert(0, donador[9])
+ 
+        etiquetaCorreo = tk.Label(ventanaActualizar, text="Correo:")
+        etiquetaCorreo.pack()
+        campoCorreo = tk.Entry(ventanaActualizar)
+        campoCorreo.pack()
+        campoCorreo.insert(0, donador[8])
+ 
+        def confirmar():
+            fecha = campoFecha.get()
+            tel = campoTel.get()
+            correo = campoCorreo.get()
+            peso = campoPeso.get()
+ 
+            if not re.match(r'^\d{2}/\d{2}/\d{4}$', fecha):
+                messagebox.showerror("Fecha inválida", "siga los parámetros (DD/MM/AAAA).")
+                return
+            if not re.match(r'^[246789]\d{3}-\d{4}$', tel):
+                messagebox.showerror("Teléfono inválido", "siga los parámetros(####-####).")
+                return
+            if not re.match(r'^[a-zA-Z0-9]+@[a-zA-Z]+\.[a-zA-Z]+(\.[a-zA-Z]+)?$', correo):
+                messagebox.showerror("Correo inválido", "siga los parámetros.")
+                return
+            if not pesoAux(peso):
+                messagebox.showerror("Peso inválido", "debe pesar entre 50 y 120 kg.")
+                return
+ 
+            partesNombre = campoNombre.get().split()
+            if len(partesNombre) != 3:
+                messagebox.showerror("Nombre inválido", "Debe ingresar su nombre y dos apellidos.")
+                return
+ 
+            partesFecha = fecha.split("/")
+            fechaTupla = (int(partesFecha[0]), int(partesFecha[1]), int(partesFecha[2]))
+ 
+            baseDatos[indiceDonador][0] = partesNombre[0]
+            baseDatos[indiceDonador][1] = partesNombre[1]
+            baseDatos[indiceDonador][2] = partesNombre[2]
+            baseDatos[indiceDonador][4] = tiposSangre.index(vTipoSangre.get())
+            baseDatos[indiceDonador][5] = vSexo.get()
+            baseDatos[indiceDonador][6] = fechaTupla
+            baseDatos[indiceDonador][7] = float(peso)
+            baseDatos[indiceDonador][8] = correo
+            baseDatos[indiceDonador][9] = tel
+ 
+            guardarBaseDatos()
+            messagebox.showinfo("Actualización", "Datos actualizados correctamente.")
+            ventanaActualizar.destroy()
+ 
+        def rechazar():
+            messagebox.showinfo("Actualización", "Datos No actualizados.")
+ 
+        botonConfirmar = tk.Button(ventanaActualizar, text="Confirmar", command=confirmar)
+        botonConfirmar.pack()
+ 
+        botonRechazar = tk.Button(ventanaActualizar, text="Rechazar", command=rechazar)
+        botonRechazar.pack()
+ 
+        botonRegresar = tk.Button(ventanaActualizar, text="Regresar", command=ventanaActualizar.destroy)
+        botonRegresar.pack()
+ 
+    botonBuscar = tk.Button(ventanaBuscar, text="Buscar", command=buscar)
+    botonBuscar.pack()
+ 
+    botonRegresar = tk.Button(ventanaBuscar, text="Regresar", command=ventanaBuscar.destroy)
+    botonRegresar.pack()
 
 def buscar(campoCedula, ventanaEliminar):
     """
